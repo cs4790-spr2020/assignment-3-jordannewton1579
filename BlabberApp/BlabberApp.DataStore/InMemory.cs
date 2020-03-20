@@ -1,69 +1,70 @@
-﻿
-using System;
-using System.Collections;
-using BlabberApp.Domain.Entities;
+﻿using BlabberApp.Domain.Entities;
 using BlabberApp.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BlabberApp.DataStore
 {
-    public class InMemory : IDataStore, IList
+    public class InMemory<T> : IRepository<T> where T : BaseDatum
     {
-        private ArrayList _items;
+        private ApplicationContext Context;
+        private DbSet<T> _entities;
 
-        public InMemory()
+        public InMemory(ApplicationContext context)
         {
-            this._items = new ArrayList();
+            Context = context;
+            _entities = context.Set<T>();
         }
 
-        public bool Create(IDatum datum)
+        public void Add(T entity)
         {
-            int idx = this._items.Add(datum);
-            if (idx < 0)
+            if (entity == null)
             {
-                throw new ArgumentOutOfRangeException("OH HELL!");
+                throw new ArgumentNullException("entity");
             }
-            return true;
+            _entities.Add(entity);
+            Context.SaveChanges();
         }
-
-        public IDatum Read(int idx)
+        public void Remove(T entity)
         {
-            return (IDatum)this._items[idx];
-        }
-
-        public bool Update(IDatum datum)
-        {
-            return true;
-        }
-
-        public bool Delete(int idx)
-        {
-            try
+            if (entity == null)
             {
-                this._items.RemoveAt(idx);
+                throw new ArgumentNullException("entity");
             }
-            catch (ArgumentOutOfRangeException e)
+            _entities.Remove(entity);
+            Context.SaveChanges();
+        }
+        public void Update(T entity)
+        {
+            if (entity == null)
             {
-                throw e;
+                throw new ArgumentNullException("entity");
             }
-            return true;
+            Context.SaveChanges();
+        }
+        public IEnumerable<T> GetAll()
+        {
+            return _entities.AsEnumerable();
+        }
+        public T GetBySysId(string sysId)
+        {
+            if (sysId.Equals(""))
+            {
+                throw new ArgumentNullException("sysId");
+            }
+
+            return _entities.SingleOrDefault(s => s.getSysId() == sysId);
         }
 
-        T Add<T>(T item) where T : BaseDatum
+        public T GetByUserId(string userId)
         {
-            return item;
-        }
-        void Delete<T>(T item) where T : BaseDatum
-        {
-
-        }
-        List<T> GetAll<T>(ISpecification<T> spec = null) where T : BaseDatum
-        {
-            return;
-        }
-        T GetById<T>(string sysId) where T : BaseDatum
-        {
-            return BaseDatum;
-            void Update<T>(T item) where T : BaseDatum { }
+            if (userId.Equals(""))
+            {
+                throw new ArgumentNullException("userId");
+            }
+            return _entities.Find(userId);
         }
     }
 }

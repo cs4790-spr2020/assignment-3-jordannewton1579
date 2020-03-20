@@ -1,13 +1,11 @@
-namespace BlabberApp.Domain
+namespace BlabberApp.Domain.Interfaces
 {
     public interface IDataStore
     {
-        bool Create(IDatum datum);
-
-        IDatum Read(ISpeciman speciman);
-
-        bool Update(IDatum datum);
-
+        bool Create(IDatum entity);
+        IDatum Read(int idx);
+        bool Update(IDatum entity);
         bool Delete(int idx);
+ 
     }
 }
